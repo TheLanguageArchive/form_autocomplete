@@ -1,0 +1,373 @@
+<?php
+// Includes functions for common db queries.
+require_once dirname(__FILE__) . '/includes/db.inc';
+
+/**
+ * This method gets loaded on every page to add drupal js files
+ * to allow people to create a language autocomplete field using
+ * data-role="flat-lang-autocomplete" to enable autocomplete and
+ * data-role="flat-lang-autocomplete-destination" for the ISO code
+ * once selected
+ */
+function flat_lang_autocomplete_init() {
+
+    $module_path = drupal_get_path('module', 'flat_lang_autocomplete');
+
+    if (!file_exists($module_path . '/processed.json')) {
+        flat_lang_autocomplete_process();
+    }
+
+    drupal_add_js($module_path . '/js/flat-lang-autocomplete.js');
+    drupal_add_js([
+        'flat_lang_autocomplete' => [
+            'languages' => flat_lang_autocomplete_data(),
+        ]], [
+            'type' => 'setting',
+        ]
+    );
+}
+
+/**
+ * Fetch processed autocomplete data
+ *
+ * @return array
+ */
+function flat_lang_autocomplete_data() {
+
+    $module_path = drupal_get_path('module', 'flat_lang_autocomplete');
+    return json_decode(file_get_contents($module_path . '/processed.json'), true);
+}
+
+/**
+ * Processing autocomplete data to allow faster
+ * searches in js
+ */
+function flat_lang_autocomplete_process() {
+
+    $module_path   = drupal_get_path('module', 'flat_lang_autocomplete');
+    $results       = json_decode(file_get_contents($module_path . '/name2iso.json'), true);
+    $data          = [];
+    $prepared      = [];
+    $labels        = [];
+    $custom_labels = flat_lang_autocomplete_db_get_labels();
+
+    foreach ($results as $lang => $codes) {
+
+        // filter duplicate codes
+        $codes = array_unique($codes);
+
+        foreach ($codes as $code) {
+            $prepared[$code][] = $lang;
+        }
+    }
+
+    foreach ($prepared as $code => $languages) {
+
+        $label = null;
+
+        foreach ($languages as $key => $lang) {
+
+            if (preg_match('/\[(?P<lang>.+)\]/', $lang, $matches)) {
+
+                if ($matches['lang'] === 'en') {
+                    $label = $lang;
+                }
+            }
+
+            if (null === $label) {
+                $label = $lang;
+            }
+
+            $languages[$key] = trim(preg_replace('/\[(.+)\]/', '', $lang));
+        }
+
+        $label  = trim(preg_replace('/\[(.+)\]/', '', $label));
+
+        if (isset($custom_labels[$code])) {
+            $label = $custom_labels[$code];
+        }
+
+        $data[] = [
+
+            'code'  => $code,
+            'terms' => array_values(array_unique($languages)),
+            'label' => $label,
+        ];
+    }
+
+    file_put_contents($module_path . '/processed.json', json_encode($data, JSON_PRETTY_PRINT));
+}
+
+/**
+ * Create admin page to allow users to fill in
+ * custom labels
+ *
+ * @return array
+ */
+function flat_lang_autocomplete_menu() {
+
+    $items = [
+
+        'admin/config/flat_lang_autocomplete' => [
+
+            'title'            => 'Flat Language Autocomplete module',
+            'description'      => 'Manage labels for lang codes for the autocomplete',
+            'page callback'    => 'drupal_get_form',
+            'page arguments'   => ['flat_lang_autocomplete_admin'],
+            'access arguments' => ['admin lang_autocomplete module'],
+            'type'             => MENU_NORMAL_ITEM,
+        ],
+    ];
+
+    return $items;
+}
+
+/**
+ * Connect admin table theme to page
+ *
+ * @return array
+ */
+function flat_lang_autocomplete_theme() {
+
+    return [
+
+        'flat_lang_autocomplete_admin_table' => [
+
+            'path'           => drupal_get_path('module', 'flat_lang_autocomplete'),
+            'file'           => 'includes/admin.inc',
+            'render element' => 'form',
+        ],
+    ];
+}
+
+/**
+ * Custom labels form
+ *
+ * @param array $form
+ * @param array $form_state
+ *
+ * @return array
+ */
+function flat_lang_autocomplete_admin($form, &$form_state) {
+
+    $form['#attached'] = [
+        'css' => [
+            drupal_get_path('module', 'flat_lang_autocomplete') . '/css/flat-lang-autocomplete.admin.css',
+        ],
+    ];
+
+    $form['general'] = [
+
+        '#type'   => 'vertical_tabs',
+        '#weight' => 5,
+    ];
+
+    $form['general']['custom_labels'] = [
+
+        '#type'        => 'fieldset',
+        '#title'       => t('Custom Labels'),
+        '#collapsible' => true,
+    ];
+
+    if ($form_state['rebuild'] == false) {
+
+        $labels = flat_lang_autocomplete_db_get_labels();
+        $form_state['custom_labels'] = [];
+
+        foreach ($labels as $code => $label) {
+
+            // move labels into form_state
+            $form_state['custom_labels'][$code] = $label;
+        }
+    }
+
+    if (isset($form_state['triggering_element'])) {
+
+        if ($form_state['triggering_element']['#value'] == t('Remove')) {
+
+            $code = $form_state['triggering_element']['#code'];
+            unset($form_state['custom_labels'][$code]);
+        }
+
+        if ($form_state['triggering_element']['#value'] == t('Add')) {
+
+            $code  = $form_state['values']['table']['add_label']['code'];
+            $label = $form_state['values']['table']['add_label']['label'];
+
+            if (isset($form_state['custom_labels'][$code])) {
+                $error = t('Code you provided is already available');
+            } elseif (empty($code) || empty($label)) {
+                $error = t('One of the fields weren\'t properly filled in');
+            }
+
+            if (!isset($error)) {
+
+                // add new label
+                $form_state['custom_labels'][$code] = $label;
+
+                // clear input fields
+                $form_state['input']['table']['add_label']['code']  = '';
+                $form_state['input']['table']['add_label']['label'] = '';
+            }
+        }
+    }
+
+    $form['general']['custom_labels']['table'] = [
+
+        '#type'        => 'item',
+        '#title'       => t('Custom Labels'),
+        '#description' => t('Custom labels for certain language codes according to the ISO-639-3 spec'),
+        '#tree'        => true,
+        '#theme'       => 'flat_lang_autocomplete_admin_table',
+        '#prefix'      => '<div id="flat-lang-autocomplete-admin-wrapper">',
+        '#suffix'      => '</div>',
+    ];
+
+    $labels = [];
+
+    foreach ($form_state['custom_labels'] as $code => $label) {
+
+        $labels[$code] = [
+
+            'code_render' => [
+                '#markup' => $code,
+            ],
+            'code' => [
+                '#type' => 'hidden',
+                '#value' => $code,
+            ],
+            'label_render' => [
+                '#markup' => $label,
+            ],
+            'label' => [
+                '#type' => 'hidden',
+                '#value' => $label,
+            ],
+            'operations' => [
+
+                '#type'       => 'submit',
+                '#value'      => t('Remove'),
+                '#code'       => $code,
+                '#attributes' => ['class' => ['flat-lang-autocomplete-remove-submit']],
+                '#submit'     => ['flat_lang_autocomplete_admin_update_fields_submit'],
+                '#name'       => 'flat_lang_autocomplete_remove_button_' . $code,
+                '#ajax'       => [
+                    'callback' => 'flat_lang_autocomplete_admin_update_fields',
+                    'wrapper'  => 'flat-lang-autocomplete-admin-wrapper',
+                    'effect'   => 'none',
+                    'event'    => 'click',
+                ],
+            ],
+        ];
+    }
+
+    $add_label = [
+
+        '#type'  => 'item',
+        '#title' => t('Add another label'),
+        'label'  => [
+            '#type'          => 'textfield',
+            '#size'          => 30,
+            '#default_value' => '',
+            '#prefix'        => '<div>',
+            '#suffix'        => '</div>',
+            '#attributes'    => ['placeholder' => 'Label', 'data-role' => 'lang-autocomplete'],
+        ],
+        'code'  => [
+            '#type'          => 'textfield',
+            '#size'          => 30,
+            '#default_value' => '',
+            '#prefix'        => '<div>',
+            '#suffix'        => '</div>',
+            '#attributes'    => ['placeholder' => 'Code', 'data-role' => 'lang-autocomplete-destination'],
+        ],
+        'button' => [
+            '#type'   => 'button',
+            '#value'  => t('Add'),
+            '#prefix' => '<div>',
+            '#suffix' => '</div>',
+            '#submit' => ['flat_lang_autocomplete_admin_update_fields_submit'],
+            '#name'   => 'add_label',
+            '#ajax'   => [
+                'callback' => 'flat_lang_autocomplete_admin_update_fields',
+                'wrapper'  => 'flat-lang-autocomplete-admin-wrapper',
+                'event'    => 'click',
+                'effect'   => 'none',
+            ],
+        ],
+    ];
+
+    if (isset($error) && !empty($error)) {
+
+        $add_label['#title']     .= '<br /><span class="flat-lang-autocomplete-error">' . $error . '</span>';
+        $add_label['#attributes'] = ['class' => ['error']];
+    }
+
+    $form['general']['custom_labels']['table']['add_label']  = $add_label;
+    $form['general']['custom_labels']['table']['labels']     = $labels;
+
+    $form['actions'] = [
+
+        '#type' => 'actions',
+
+        'submit' => [
+
+            '#type'   => 'submit',
+            '#value'  => t('Save Configuration'),
+            '#weight' => 0,
+            '#submit' => ['flat_lang_autocomplete_submit'],
+        ],
+        'reset' => [
+
+            '#type'   => 'submit',
+            '#value'  => t('Reset to defaults'),
+            '#weight' => 1,
+            '#submit' => ['flat_lang_autocomplete_submit'],
+        ],
+    ];
+
+    return $form;
+}
+
+/**
+ * Which part of the form have to be returned
+ * when ajax is completed
+ *
+ * @param array $form
+ * @param array $form_state
+ *
+ * @return array
+ */
+function flat_lang_autocomplete_admin_update_fields($form, &$form_state) {
+    return $form['general']['custom_labels']['table'];
+}
+
+/**
+ * Rebuild form when ajax is done
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function flat_lang_autocomplete_admin_update_fields_submit($form, &$form_state) {
+    $form_state['rebuild'] = true;
+}
+
+/**
+ * Saving custom labels to db
+ *
+ * @param array $form
+ * @param array $form_state
+ */
+function flat_lang_autocomplete_submit($form, &$form_state) {
+
+    if ($form_state['triggering_element']['#value'] == t('Reset to defaults')) {
+
+        $form_state['redirect'] = 'admin/config/flat_lang_autocomplete';
+        drupal_set_message(t('Custom labels form was successfully reset'));
+
+    } else {
+
+        flat_lang_autocomplete_db_commit_labels($form_state['custom_labels']);
+        drupal_set_message(t('Custom labels were successfully saved'));
+    }
+}

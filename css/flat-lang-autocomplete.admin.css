@@ -1,0 +1,23 @@
+.flat-lang-autocomplete-error {
+  color: #ff0000;
+  font-weight: normal;
+}
+
+.flat-lang-autocomplete-labels-table
+{
+  margin-bottom: 0px;
+  border-bottom: 0px;
+}
+
+.flat-lang-autocomplete-labels-table-controls
+{
+  border-top: 0px;
+}
+
+/* add more controls */
+
+.form-item .add-item-controls div.form-item
+{
+  min-width: 400px;
+  margin-right: 10px;
+}
