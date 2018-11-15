@@ -18,7 +18,6 @@
 
             // setting up variables
             var el       = jq(this);
-            var dest     = jq('[data-role="flat-lang-autocomplete-destination"]');
             var dropdown = el.parent().parent().next('div.dropdown');
 
             if (event.which === 27 || el.val().length < 3) {
@@ -104,7 +103,7 @@
                     var dropdownEl = jq(this);
 
                     el.val(dropdownEl.data('label'));
-                    dest.val(dropdownEl.data('code'));
+                    el.parent().parent().find('[data-role="flat-lang-autocomplete-destination"]').val(dropdownEl.data('code'));
 
                     dropdown.remove();
                 });
