@@ -2,6 +2,13 @@
 // Includes functions for common db queries.
 require_once dirname(__FILE__) . '/includes/db.inc';
 
+function flat_lang_autocomplete_form_alter(&$form, &$form_state, $form_id) {
+
+    if ($form_id === 'flat_bundle_update_cmdi_form') {
+        flat_lang_autocomplete_setup();
+    }
+}
+
 /**
  * This method gets loaded on every page to add drupal js files
  * to allow people to create a language autocomplete field using
@@ -9,12 +16,12 @@ require_once dirname(__FILE__) . '/includes/db.inc';
  * data-role="flat-lang-autocomplete-destination" for the ISO code
  * once selected
  */
-function flat_lang_autocomplete_init() {
+function flat_lang_autocomplete_setup() {
 
     $module_path = drupal_get_path('module', 'flat_lang_autocomplete');
 
     if (!file_exists($module_path . '/processed.json')) {
-        flat_lang_autocomplete_process();
+        flat_lang_autocomplete_data_preparation();
     }
 
     drupal_add_js($module_path . '/js/flat-lang-autocomplete.js');
@@ -42,7 +49,7 @@ function flat_lang_autocomplete_data() {
  * Processing autocomplete data to allow faster
  * searches in js
  */
-function flat_lang_autocomplete_process() {
+function flat_lang_autocomplete_data_preparation() {
 
     $module_path   = drupal_get_path('module', 'flat_lang_autocomplete');
     $results       = json_decode(file_get_contents($module_path . '/name2iso.json'), true);
