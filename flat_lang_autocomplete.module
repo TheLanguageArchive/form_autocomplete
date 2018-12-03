@@ -13,7 +13,9 @@ require_once dirname(__FILE__) . '/includes/db.inc';
  */
 function flat_lang_autocomplete_form_alter(&$form, &$form_state, $form_id) {
 
-    if ($form_id === 'flat_bundle_update_cmdi_form') {
+    $allowed_forms = ['flat_deposit_cmdi_form', 'flat_bundle_update_cmdi_form', 'flat_collection_add_form', 'flat_collection_update_form'];
+
+    if (in_array($form_id, $allowed_forms)) {
         flat_lang_autocomplete_setup();
     }
 }
