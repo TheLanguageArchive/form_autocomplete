@@ -192,9 +192,20 @@ function flat_lang_autocomplete_theme() {
  */
 function flat_lang_autocomplete_admin($form, &$form_state) {
 
+    $module_path = drupal_get_path('module', 'flat_lang_autocomplete');
+
+    drupal_add_js($module_path . '/js/flat-lang-autocomplete.js');
+    drupal_add_js([
+        'flat_lang_autocomplete' => [
+            'languages' => flat_lang_autocomplete_data(),
+        ]], [
+            'type' => 'setting',
+        ]
+    );
+
     $form['#attached'] = [
         'css' => [
-            drupal_get_path('module', 'flat_lang_autocomplete') . '/css/flat-lang-autocomplete.admin.css',
+            $module_path . '/css/flat-lang-autocomplete.admin.css',
         ],
     ];
 
@@ -313,7 +324,7 @@ function flat_lang_autocomplete_admin($form, &$form_state) {
             '#default_value' => '',
             '#prefix'        => '<div>',
             '#suffix'        => '</div>',
-            '#attributes'    => ['placeholder' => 'Label', 'data-role' => 'lang-autocomplete'],
+            '#attributes'    => ['placeholder' => 'Label', 'data-role' => 'flat-lang-autocomplete'],
         ],
         'code'  => [
             '#type'          => 'textfield',
@@ -321,7 +332,7 @@ function flat_lang_autocomplete_admin($form, &$form_state) {
             '#default_value' => '',
             '#prefix'        => '<div>',
             '#suffix'        => '</div>',
-            '#attributes'    => ['placeholder' => 'Code', 'data-role' => 'lang-autocomplete-destination'],
+            '#attributes'    => ['placeholder' => 'Code', 'data-role' => 'flat-lang-autocomplete-destination', 'data-flat-lang-autocomplete-ignore-prefix' => 'true'],
         ],
         'button' => [
             '#type'   => 'button',

@@ -104,10 +104,12 @@
 
                     // if someone clicks on a result, add the result to the textfields
                     // and remove dropdown menu from DOM
-                    var dropdownEl = jq(this);
+                    var dropdownEl   = jq(this);
+                    var destination  = el.parent().parent().parent().find('[data-role="flat-lang-autocomplete-destination"]');
+                    var ignorePrefix = destination.data('flat-lang-autocomplete-ignore-prefix');
 
                     el.val(dropdownEl.data('label'));
-                    el.parent().parent().find('[data-role="flat-lang-autocomplete-destination"]').val(dropdownEl.data('code'));
+                    destination.val((true === ignorePrefix ? '' : 'ISO639-3:') + dropdownEl.data('code'));
 
                     dropdown.remove();
                 });
