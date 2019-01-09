@@ -4,5 +4,5 @@ package = FLAT
 description = Enable FLAT Language Autocomplete functionality
 core = 7.x
 version = 7.x-0.1-dev
-configure = admin/config/flat_lang_autocomplete
+configure = admin/config/flat_deposit/flat_lang_autocomplete
 dependencies[] = flat_deposit

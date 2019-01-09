@@ -31,7 +31,7 @@ function flat_lang_autocomplete_setup() {
 
     $module_path = drupal_get_path('module', 'flat_lang_autocomplete');
 
-    if (!file_exists($module_path . '/processed.json')) {
+    if (!file_exists($module_path . '/processed.json') || filemtime($module_path . '/name2iso.json') > filemtime($module_path . '/processed.json')) {
         flat_lang_autocomplete_data_preparation();
     }
 
@@ -126,9 +126,9 @@ function flat_lang_autocomplete_menu() {
 
     $items = [
 
-        'admin/config/flat_lang_autocomplete' => [
+        'admin/config/flat_deposit/flat_lang_autocomplete' => [
 
-            'title'            => 'Flat Language Autocomplete module',
+            'title'            => 'Configure language autocomplete',
             'description'      => 'Manage labels for lang codes for the autocomplete',
             'page callback'    => 'drupal_get_form',
             'page arguments'   => ['flat_lang_autocomplete_admin'],
@@ -404,7 +404,7 @@ function flat_lang_autocomplete_submit($form, &$form_state) {
 
     if ($form_state['triggering_element']['#value'] == t('Reset to defaults')) {
 
-        $form_state['redirect'] = 'admin/config/flat_lang_autocomplete';
+        $form_state['redirect'] = 'admin/config/flat_deposit/flat_lang_autocomplete';
         drupal_set_message(t('Custom labels form was successfully reset'));
 
     } else {
