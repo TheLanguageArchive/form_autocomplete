@@ -132,12 +132,36 @@ function flat_lang_autocomplete_menu() {
             'description'      => 'Manage labels for lang codes for the autocomplete',
             'page callback'    => 'drupal_get_form',
             'page arguments'   => ['flat_lang_autocomplete_admin'],
-            'access arguments' => ['admin lang_autocomplete module'],
+            'access callback'  => 'flat_lang_autocomplete_admin_access',
+            'access arguments' => ['manage language autocomplete menu', 2],
             'type'             => MENU_NORMAL_ITEM,
         ],
     ];
 
     return $items;
+}
+
+/**
+ * @param string         $op
+ * @param AbstractObject $object
+ *
+ * @return boolean
+ */
+function flat_lang_autocomplete_admin_access($op, $object) {
+    return user_access('manage language autocomplete menu');
+}
+
+/**
+ * @return array
+ */
+function flat_lang_autocomplete_permission() {
+
+    return [
+        'manage language autocomplete menu' => [
+            'title' => t('Manage Language Autocomplete'),
+            'description' => t('Allows you to manage custom labels for the language autocomplete'),
+        ],
+    ];
 }
 
 /**
