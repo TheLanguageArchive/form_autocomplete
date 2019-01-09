@@ -5,11 +5,15 @@
         var search = new RegExp('.*' + filter + '.*', 'gi');
 
         return data.filter(function(item) {
+            return item.label.match(search);
+        });
+        /*
+        return data.filter(function(item) {
 
             return item.terms.filter(function(term) {
                 return term.match(search);
             }).length > 0;
-        });
+        });*/
     };
 
     jq(function() {
