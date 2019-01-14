@@ -5,7 +5,7 @@
         var search = new RegExp('.*' + filter + '.*', 'gi');
 
         return data.filter(function(item) {
-            return item.label.match(search);
+            return item.term.match(search);
         });
         /*
         return data.filter(function(item) {
@@ -22,7 +22,7 @@
 
             // setting up variables
             var el       = jq(this);
-            var dropdown = el.parent().parent().next('div.dropdown');
+            var dropdown = el.parent().next('div.dropdown');
 
             if (event.which === 27 || el.val().length < 3) {
 
@@ -78,7 +78,7 @@
 
             // building autocomplete list
             for (var i in results) {
-                list += '<li><a href="#" data-code="' + results[i].code + '" data-label="' + results[i].label + '">' + results[i].label + ' (' + results[i].code + ')</a></li>';
+                list += '<li><a href="#" data-code="' + results[i].code + '" data-label="' + results[i].term + '">' + results[i].term + ' (' + results[i].code + ')</a></li>';
             }
 
             if (dropdown.length > 0) {
@@ -97,7 +97,7 @@
                                 '</ul>' +
                             '</div>');
 
-                dropdown.insertAfter(el.parent().parent()).on('click', 'ul li a', function(event) {
+                dropdown.insertAfter(el.parent()).on('click', 'ul li a', function(event) {
 
                     // preventing the link from continuing
                     event.preventDefault();

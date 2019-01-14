@@ -81,36 +81,33 @@ function flat_lang_autocomplete_data_preparation() {
 
     foreach ($prepared as $code => $languages) {
 
-        $label = null;
-
         foreach ($languages as $key => $lang) {
 
-            if (preg_match('/\[(?P<lang>.+)\]/', $lang, $matches)) {
+            $term = null;
+
+            if (isset($custom_labels[$code])) {
+                $term = $custom_labels[$code];
+            } elseif (preg_match('/\[(?P<lang>.+)\]/', $lang, $matches)) {
 
                 if ($matches['lang'] === 'en') {
-                    $label = $lang;
+                    $term = $lang;
                 }
+
+            } else {
+                $term = $lang;
             }
 
-            if (null === $label) {
-                $label = $lang;
+            if (null !== $term) {
+
+                $term = trim(preg_replace('/\[(.+)\]/', '', $term));
+
+                $data[] = [
+
+                    'code'  => $code,
+                    'term'  => $term,
+                ];
             }
-
-            $languages[$key] = trim(preg_replace('/\[(.+)\]/', '', $lang));
         }
-
-        $label  = trim(preg_replace('/\[(.+)\]/', '', $label));
-
-        if (isset($custom_labels[$code])) {
-            $label = $custom_labels[$code];
-        }
-
-        $data[] = [
-
-            'code'  => $code,
-            'terms' => array_values(array_unique($languages)),
-            'label' => $label,
-        ];
     }
 
     file_put_contents($module_path . '/processed.json', json_encode($data, JSON_PRETTY_PRINT));
