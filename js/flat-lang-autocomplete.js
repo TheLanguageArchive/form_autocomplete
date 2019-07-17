@@ -2,18 +2,30 @@
 
     jq.fn.FlatLangAutocomplete = function(data, filter) {
 
-        var search = new RegExp('.*' + filter + '.*', 'gi');
+        var search  = new RegExp('.*' + filter + '.*', 'gi');
+        var results = [];
+        var i       = 0;
 
-        return data.filter(function(item) {
-            return item.term.match(search);
-        });
-        /*
-        return data.filter(function(item) {
+        data.forEach(function(item) {
 
-            return item.terms.filter(function(term) {
+            var terms = item.terms.filter(function(term) {
                 return term.match(search);
-            }).length > 0;
-        });*/
+            });
+
+            if (terms.length > 0) {
+
+                terms.forEach(function(term) {
+
+                    if (i < 10) {
+                        results.push({code: item.code, term: term});
+                    }
+
+                    i += 1;
+                });
+            }
+        });
+
+        return results;
     };
 
     jq(function() {

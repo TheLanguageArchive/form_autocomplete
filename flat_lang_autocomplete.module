@@ -31,9 +31,7 @@ function flat_lang_autocomplete_setup() {
 
     $module_path = drupal_get_path('module', 'flat_lang_autocomplete');
 
-    if (!file_exists($module_path . '/processed.json') || filemtime($module_path . '/name2iso.json') > filemtime($module_path . '/processed.json')) {
-        flat_lang_autocomplete_data_preparation();
-    }
+    flat_lang_autocomplete_check_autocomplete_data();
 
     drupal_add_js($module_path . '/js/flat-lang-autocomplete.js');
     drupal_add_js([
@@ -43,6 +41,20 @@ function flat_lang_autocomplete_setup() {
             'type' => 'setting',
         ]
     );
+}
+
+/**
+ * Check autocomplete data or generate
+ *
+ * @return void
+ */
+function flat_lang_autocomplete_check_autocomplete_data() {
+
+    $module_path = drupal_get_path('module', 'flat_lang_autocomplete');
+
+    if (!file_exists($module_path . '/processed.json') || filemtime($module_path . '/name2iso.json') > filemtime($module_path . '/processed.json')) {
+        flat_lang_autocomplete_data_preparation();
+    }
 }
 
 /**
@@ -66,7 +78,6 @@ function flat_lang_autocomplete_data_preparation() {
     $results       = json_decode(file_get_contents($module_path . '/name2iso.json'), true);
     $data          = [];
     $prepared      = [];
-    $labels        = [];
     $custom_labels = flat_lang_autocomplete_db_get_labels();
 
     foreach ($results as $lang => $codes) {
@@ -75,42 +86,26 @@ function flat_lang_autocomplete_data_preparation() {
         $codes = array_unique($codes);
 
         foreach ($codes as $code) {
-            $prepared[$code][] = $lang;
+
+            $term = trim(preg_replace('/\[(.+)\]/', '', $lang));
+            $prepared[$code][] = $term;
         }
     }
 
     foreach ($prepared as $code => $languages) {
 
-        foreach ($languages as $key => $lang) {
+        $data[$code] = [
 
-            $term = null;
+            'code'  => $code,
+            'terms' => $languages,
+        ];
 
-            if (isset($custom_labels[$code])) {
-                $term = $custom_labels[$code];
-            } elseif (preg_match('/\[(?P<lang>.+)\]/', $lang, $matches)) {
-
-                if ($matches['lang'] === 'en') {
-                    $term = $lang;
-                }
-
-            } else {
-                $term = $lang;
-            }
-
-            if (null !== $term) {
-
-                $term = trim(preg_replace('/\[(.+)\]/', '', $term));
-
-                $data[] = [
-
-                    'code'  => $code,
-                    'term'  => $term,
-                ];
-            }
+        if (isset($custom_labels[$code])) {
+            $data[$code]['terms'][] = $custom_labels[$code];
         }
     }
 
-    file_put_contents($module_path . '/processed.json', json_encode($data, JSON_PRETTY_PRINT));
+    file_put_contents($module_path . '/processed.json', json_encode(array_values($data), JSON_PRETTY_PRINT));
 }
 
 /**
@@ -190,6 +185,8 @@ function flat_lang_autocomplete_theme() {
 function flat_lang_autocomplete_admin($form, &$form_state) {
 
     $module_path = drupal_get_path('module', 'flat_lang_autocomplete');
+
+    flat_lang_autocomplete_check_autocomplete_data();
 
     drupal_add_js($module_path . '/js/flat-lang-autocomplete.js');
     drupal_add_js([
