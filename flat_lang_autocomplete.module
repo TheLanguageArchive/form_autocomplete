@@ -107,10 +107,20 @@ function flat_lang_autocomplete_data_preparation() {
                 }
             }
         }
+    }
 
-        if (isset($custom_labels[$code])) {
-            $data[$code]['terms'][] = $custom_labels[$code];
+    foreach ($custom_labels as $code => $label) {
+
+        if (!isset($data[$code])) {
+
+            $data[$code] = [
+
+                'code'  => $code,
+                'terms' => [],
+            ];
         }
+
+        $data[$code]['terms'][] = $custom_labels[$code];
     }
 
     file_put_contents($module_path . '/processed.json', json_encode(array_values($data), JSON_PRETTY_PRINT));
