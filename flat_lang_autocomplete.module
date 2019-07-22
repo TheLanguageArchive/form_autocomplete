@@ -86,9 +86,7 @@ function flat_lang_autocomplete_data_preparation() {
         $codes = array_unique($codes);
 
         foreach ($codes as $code) {
-
-            $term = trim(preg_replace('/\[(.+)\]/', '', $lang));
-            $prepared[$code][] = $term;
+            $prepared[$code][] = $lang;
         }
     }
 
@@ -97,8 +95,18 @@ function flat_lang_autocomplete_data_preparation() {
         $data[$code] = [
 
             'code'  => $code,
-            'terms' => $languages,
+            'terms' => [],
         ];
+
+        foreach ($languages as $key => $lang) {
+
+            if (preg_match('/\[(?P<lang>.+)\]/', $lang, $matches)) {
+
+                if ($matches['lang'] === 'en') {
+                    $data[$code]['terms'][] = trim(preg_replace('/\[(.+)\]/', '', $lang));
+                }
+            }
+        }
 
         if (isset($custom_labels[$code])) {
             $data[$code]['terms'][] = $custom_labels[$code];
