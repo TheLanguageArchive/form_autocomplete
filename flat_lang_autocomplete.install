@@ -37,6 +37,14 @@ function flat_lang_autocomplete_schema() {
             'description' => 'Table that stores Flat Language Autocomplete custom labels',
             'fields'      => [
 
+                'id' => [
+
+                    'description' => 'The primary identifier',
+					'type'        => 'int',
+					'not null'    => true,
+					'unsigned'    => true,
+                ],
+
                 'code' => [
 
                     'type'        => 'varchar',
@@ -53,7 +61,7 @@ function flat_lang_autocomplete_schema() {
                     'description' => 'Custom label that will be used in place of the standard',
                 ],
             ],
-            'primary key' => ['code'],
+            'primary key' => ['id'],
         ],
     ];
 

@@ -34,7 +34,7 @@ function flat_lang_autocomplete_db_get_labels() {
         $records = [];
 
         foreach ($data as $item) {
-            $records[$item['code']] = $item['label'];
+            $records[$item['id']] = $item;
         }
 
     } catch (Exception $e) {

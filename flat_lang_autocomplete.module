@@ -74,11 +74,11 @@ function flat_lang_autocomplete_data() {
  */
 function flat_lang_autocomplete_data_preparation() {
 
-    $module_path   = drupal_get_path('module', 'flat_lang_autocomplete');
-    $results       = json_decode(file_get_contents($module_path . '/name2iso.json'), true);
-    $data          = [];
-    $prepared      = [];
-    $custom_labels = flat_lang_autocomplete_db_get_labels();
+    $module_path      = drupal_get_path('module', 'flat_lang_autocomplete');
+    $results          = json_decode(file_get_contents($module_path . '/name2iso.json'), true);
+    $data             = [];
+    $prepared         = [];
+    $db_custom_labels = flat_lang_autocomplete_db_get_labels();
 
     foreach ($results as $lang => $codes) {
 
@@ -109,7 +109,12 @@ function flat_lang_autocomplete_data_preparation() {
         }
     }
 
-    foreach ($custom_labels as $code => $label) {
+    $custom_labels = [];
+    foreach ($db_custom_labels as $id => $label) {
+        $custom_labels[$label['code']][] = $label['label'];
+    }
+
+    foreach ($custom_labels as $code => $labels) {
 
         if (!isset($data[$code])) {
 
@@ -120,7 +125,9 @@ function flat_lang_autocomplete_data_preparation() {
             ];
         }
 
-        $data[$code]['terms'][] = $custom_labels[$code];
+        foreach ($labels as $label) {
+            $data[$code]['terms'][] = $custom_labels[$code];
+        }
     }
 
     file_put_contents($module_path . '/processed.json', json_encode(array_values($data), JSON_PRETTY_PRINT));
@@ -239,10 +246,10 @@ function flat_lang_autocomplete_admin($form, &$form_state) {
         $labels = flat_lang_autocomplete_db_get_labels();
         $form_state['custom_labels'] = [];
 
-        foreach ($labels as $code => $label) {
+        foreach ($labels as $id => $label) {
 
             // move labels into form_state
-            $form_state['custom_labels'][$code] = $label;
+            $form_state['custom_labels'][$id] = $label;
         }
     }
 
@@ -250,8 +257,8 @@ function flat_lang_autocomplete_admin($form, &$form_state) {
 
         if ($form_state['triggering_element']['#value'] == t('Remove')) {
 
-            $code = $form_state['triggering_element']['#code'];
-            unset($form_state['custom_labels'][$code]);
+            $id = $form_state['triggering_element']['#id'];
+            unset($form_state['custom_labels'][$id]);
         }
 
         if ($form_state['triggering_element']['#value'] == t('Add')) {
@@ -268,7 +275,7 @@ function flat_lang_autocomplete_admin($form, &$form_state) {
             if (!isset($error)) {
 
                 // add new label
-                $form_state['custom_labels'][$code] = $label;
+                $form_state['custom_labels'][] = $label;
 
                 // clear input fields
                 $form_state['input']['table']['add_label']['code']  = '';
@@ -290,32 +297,36 @@ function flat_lang_autocomplete_admin($form, &$form_state) {
 
     $labels = [];
 
-    foreach ($form_state['custom_labels'] as $code => $label) {
+    foreach ($form_state['custom_labels'] as $id => $label) {
 
-        $labels[$code] = [
+        $labels[$id] = [
 
+            'id' => [
+                '#type' => 'hidden',
+                '#value' => $id,
+            ],
             'code_render' => [
-                '#markup' => $code,
+                '#markup' => $label['code'],
             ],
             'code' => [
                 '#type' => 'hidden',
-                '#value' => $code,
+                '#value' => $label['code'],
             ],
             'label_render' => [
-                '#markup' => $label,
+                '#markup' => $label['label'],
             ],
             'label' => [
                 '#type' => 'hidden',
-                '#value' => $label,
+                '#value' => $label['label'],
             ],
             'operations' => [
 
                 '#type'       => 'submit',
                 '#value'      => t('Remove'),
-                '#code'       => $code,
+                '#id'         => $id,
                 '#attributes' => ['class' => ['flat-lang-autocomplete-remove-submit']],
                 '#submit'     => ['flat_lang_autocomplete_admin_update_fields_submit'],
-                '#name'       => 'flat_lang_autocomplete_remove_button_' . $code,
+                '#name'       => 'flat_lang_autocomplete_remove_button_' . $id,
                 '#ajax'       => [
                     'callback' => 'flat_lang_autocomplete_admin_update_fields',
                     'wrapper'  => 'flat-lang-autocomplete-admin-wrapper',

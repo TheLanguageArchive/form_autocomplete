@@ -16,6 +16,7 @@ function theme_flat_lang_autocomplete_admin_table(&$variables) {
 
             ['data' => drupal_render($form['labels'][$id]['code_render']),  'class' => 'flat-lang-autocomplete-code'],
             ['data' => drupal_render($form['labels'][$id]['code']),         'class' => 'flat-lang-autocomplete-code-hidden'],
+            ['data' => drupal_render($form['labels'][$id]['id']),           'class' => 'flat-lang-autocomplete-code-hidden'],
             ['data' => drupal_render($form['labels'][$id]['label_render']), 'class' => 'flat-lang-autocomplete-label'],
             ['data' => drupal_render($form['labels'][$id]['label']),        'class' => 'flat-lang-autocomplete-label-hidden'],
             ['data' => drupal_render($form['labels'][$id]['operations']),   'class' => 'flat-lang-autocomplete-operations'],
@@ -29,7 +30,7 @@ function theme_flat_lang_autocomplete_admin_table(&$variables) {
         ['data' => 'OPERATIONS',     'colspan' => 1, 'class' => 'flat-lang-autocomplete-operations-render-header'],
     ];
 
-    $controls   = [[
+    $controls = [[
 
         'data'        => [['data' => drupal_render($form['add_label']), 'colspan' => 5]],
         'class'       => ['add-item-controls'],
