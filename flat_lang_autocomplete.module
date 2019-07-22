@@ -377,8 +377,8 @@ function flat_lang_autocomplete_admin($form, &$form_state) {
         $add_label['#attributes'] = ['class' => ['error']];
     }
 
-    $form['general']['custom_labels']['table']['add_label']  = $add_label;
-    $form['general']['custom_labels']['table']['labels']     = $labels;
+    $form['general']['custom_labels']['table']['add_label'] = $add_label;
+    $form['general']['custom_labels']['table']['labels']    = $labels;
 
     $form['actions'] = [
 
@@ -427,6 +427,24 @@ function flat_lang_autocomplete_admin_update_fields_submit($form, &$form_state) 
 }
 
 /**
+ * Preparing form_state data for insertion to database
+ *
+ * @param array $form_labels
+ *
+ * @return array
+ */
+function flat_lang_autocomplete_admin_prepare_form_labels($form_labels) {
+
+    $labels = [];
+
+    foreach ($form_labels as $label) {
+        $labels[][] = ['code' => $label['code'],  'label' => $label['label']];
+    }
+
+    return $labels;
+}
+
+/**
  * Saving custom labels to db
  *
  * @param array $form
@@ -441,7 +459,9 @@ function flat_lang_autocomplete_submit($form, &$form_state) {
 
     } else {
 
-        flat_lang_autocomplete_db_commit_labels($form_state['custom_labels']);
+        $labels = flat_lang_autocomplete_admin_prepare_form_labels($form_state['custom_labels']);
+        flat_lang_autocomplete_db_commit_labels($labels);
+
         drupal_set_message(t('Custom labels were successfully saved'));
     }
 }

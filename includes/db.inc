@@ -68,14 +68,14 @@ function flat_lang_autocomplete_db_commit_labels($labels) {
             'label',
         ]);
 
-        foreach ($labels as $code => $labels) {
+        foreach ($labels as $id => $labels) {
 
             foreach ($labels as $label) {
 
                 $insert->values([
 
-                    'code'  => $code,
-                    'label' => $label,
+                    'code'  => $label['code'],
+                    'label' => $label['label'],
                 ]);
             }
         }
