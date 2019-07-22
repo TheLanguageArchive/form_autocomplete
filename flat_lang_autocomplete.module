@@ -266,16 +266,14 @@ function flat_lang_autocomplete_admin($form, &$form_state) {
             $code  = $form_state['values']['table']['add_label']['code'];
             $label = $form_state['values']['table']['add_label']['label'];
 
-            if (isset($form_state['custom_labels'][$code])) {
-                $error = t('Code you provided is already available');
-            } elseif (empty($code) || empty($label)) {
+            if (empty($code) || empty($label)) {
                 $error = t('One of the fields weren\'t properly filled in');
             }
 
             if (!isset($error)) {
 
                 // add new label
-                $form_state['custom_labels'][] = $label;
+                $form_state['custom_labels'][] = ['code' => $code, 'label' => $label];
 
                 // clear input fields
                 $form_state['input']['table']['add_label']['code']  = '';

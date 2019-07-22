@@ -4,25 +4,24 @@ function flat_lang_autocomplete_install() {
 
     $default_labels = [
 
-        "amg" => "Amurdak",
-        "awe" => "Awetí",
-        "bis" => "Bislama",
-        "boa" => "Bora",
-        "kri" => "Krio",
-        "nmn" => "!Xoon",
-        "nmn" => "'N|ohan",
-        "ori" => "Oriya",
-        "pis" => "Pijin",
-        "rop" => "Kriol",
-        "srn" => "Sranan Tongo",
-        "srn" => "Sranan",
-        "tpi" => "Tok Pisin",
-        "tzh" => "Tzeltal, Tenejapa",
-        "tzz" => "Tzotzil, Zinacantán",
-        "win" => "Hoocąk",
-        "yuz" => "Yurakaré",
-        "zpq" => "Zapotec, Zoogocho"
-
+        "amg" => ["Amurdak"],
+        "awe" => ["Awetí"],
+        "bis" => ["Bislama"],
+        "boa" => ["Bora"],
+        "kri" => ["Krio"],
+        "nmn" => ["!Xoon"],
+        "nmn" => ["'N|ohan"],
+        "ori" => ["Oriya"],
+        "pis" => ["Pijin"],
+        "rop" => ["Kriol"],
+        "srn" => ["Sranan Tongo"],
+        "srn" => ["Sranan"],
+        "tpi" => ["Tok Pisin"],
+        "tzh" => ["Tzeltal, Tenejapa"],
+        "tzz" => ["Tzotzil, Zinacantán"],
+        "win" => ["Hoocąk"],
+        "yuz" => ["Yurakaré"],
+        "zpq" => ["Zapotec, Zoogocho"],
     ];
 
     flat_lang_autocomplete_db_commit_labels($default_labels);
