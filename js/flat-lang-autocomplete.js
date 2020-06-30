@@ -16,7 +16,7 @@
 
                 terms.forEach(function(term) {
 
-                    if (i < 10) {
+                    if (i < 50) {
                         results.push({code: item.code, term: term});
                     }
 
@@ -44,7 +44,7 @@
             }
 
             // filtering data
-            var results = jq.fn.FlatLangAutocomplete(Drupal.settings.flat_lang_autocomplete.languages, this.value).slice(0, 10);
+            var results = jq.fn.FlatLangAutocomplete(Drupal.settings.flat_lang_autocomplete.languages, this.value).slice(0, 50);
             var list    = '';
 
             if (jQuery.trim(this.value) === '' || results.length === 0) {
